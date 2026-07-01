@@ -1,0 +1,14 @@
+{
+  "name": "komga-controller",
+  "version": "1.0.0",
+  "description": "Tampermonkey userscript for gamepad-to-keyboard mapping on web pages",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
+  "license": "MIT"
+}
