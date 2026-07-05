@@ -10,13 +10,10 @@
 export class Dispatcher {
   /**
    * @param {object} [opts]
-   * @param {EventTarget} [opts.target] — 主 dispatch 目标，默认 document
-   * @param {boolean} [opts.fallbackToWindow=true] — 是否同时 dispatch 到 window
+   * @param {EventTarget} [opts.target] — dispatch 目标，默认 document
    */
   constructor(opts = {}) {
     this._target = opts.target || document;
-    this._fallback = opts.fallbackToWindow !== false;
-    this._repeatTimers = new Map();
   }
 
   /**
@@ -25,74 +22,9 @@ export class Dispatcher {
    */
   dispatch(action) {
     const { type, key, code, keyCode } = action;
-
-    const eventInit = {
-      key,
-      code,
-      keyCode,
-      which: keyCode,
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      view: window,
-      repeat: false,
-    };
-
-    let event;
-    try {
-      event = new KeyboardEvent(type, eventInit);
-    } catch (e) {
-      // 回退：某些旧浏览器不支持 KeyboardEvent 构造函数
-      event = document.createEvent('KeyboardEvent');
-      if (event.initKeyboardEvent) {
-        event.initKeyboardEvent(
-          type, true, true, window,
-          key, 0, false, false, false, false
-        );
-      } else if (event.initKeyEvent) {
-        event.initKeyEvent(
-          type, true, true, window,
-          false, false, false, false,
-          keyCode, 0
-        );
-      }
-    }
-
-    // 修正 keyCode / which — 某些浏览器在构造函数中忽略
-    try {
-      Object.defineProperty(event, 'keyCode', {
-        get() { return keyCode; },
-        configurable: true,
-      });
-    } catch (_) { /* ignore */ }
-    try {
-      Object.defineProperty(event, 'which', {
-        get() { return keyCode; },
-        configurable: true,
-      });
-    } catch (_) { /* ignore */ }
-    try {
-      Object.defineProperty(event, 'key', {
-        get() { return key; },
-        configurable: true,
-      });
-    } catch (_) { /* ignore */ }
-    try {
-      Object.defineProperty(event, 'code', {
-        get() { return code; },
-        configurable: true,
-      });
-    } catch (_) { /* ignore */ }
-
+    const event = this._createKeyboardEvent(type, { key, code, keyCode, repeat: false });
     // Dispatch 到主目标
     this._target.dispatchEvent(event);
-
-    // Fallback: dispatch 到 window
-    if (this._fallback && this._target !== window) {
-      window.dispatchEvent(
-        new KeyboardEvent(type, { ...eventInit })
-      );
-    }
   }
 
   /**
@@ -101,12 +33,51 @@ export class Dispatcher {
    */
   dispatchRepeat(action) {
     const { key, code, keyCode } = action;
-    const eventInit = {
-      key, code, keyCode, which: keyCode,
-      bubbles: true, cancelable: true, composed: true,
-      view: window, repeat: true,
-    };
-    const event = new KeyboardEvent('keydown', eventInit);
+    const event = this._createKeyboardEvent('keydown', { key, code, keyCode, repeat: true });
     this._target.dispatchEvent(event);
+  }
+
+  /**
+   * 创建 KeyboardEvent，在 Tampermonkey 沙箱环境下安全执行。
+   * 不使用 view: window（沙箱中 window 可能不是原生 Window 对象）。
+   */
+  _createKeyboardEvent(type, { key, code, keyCode, repeat }) {
+    const init = {
+      key,
+      code,
+      keyCode,
+      which: keyCode,
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      repeat,
+    };
+
+    let event;
+    try {
+      event = new KeyboardEvent(type, init);
+    } catch (_e) {
+      // 沙箱环境下 new KeyboardEvent 可能失败，回退 createEvent
+      try {
+        event = document.createEvent('KeyboardEvent');
+        // initKeyboardEvent 的参数在不同浏览器不一致，跳过 view 相关调用
+      } catch (_e2) {
+        // 最终回退：用 Event 代替（丢失 keyCode 但至少能触发监听器）
+        event = new Event(type, { bubbles: true, cancelable: true, composed: true });
+      }
+    }
+
+    // 如果 createEvent 成功了但 event 没有 key 属性，直接返回（只能做到这一步）
+    if (!event || typeof event.key !== 'undefined') {
+      // 修正 keyCode / which —— 某些浏览器在构造函数中忽略
+      if (event) {
+        try { Object.defineProperty(event, 'keyCode', { get() { return keyCode; }, configurable: true }); } catch (_) {}
+        try { Object.defineProperty(event, 'which', { get() { return keyCode; }, configurable: true }); } catch (_) {}
+        try { Object.defineProperty(event, 'key', { get() { return key; }, configurable: true }); } catch (_) {}
+        try { Object.defineProperty(event, 'code', { get() { return code; }, configurable: true }); } catch (_) {}
+      }
+    }
+
+    return event;
   }
 }

@@ -137,6 +137,147 @@ export const PANEL_CSS = /* css */ `
   color: #1e1e2e;
 }
 
+/* ── Tabs ───────────────────────────────────── */
+#gc-panel .gc-tabs {
+  display: flex;
+  background: #181825;
+  border-bottom: 1px solid #313244;
+}
+
+#gc-panel .gc-tab {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: #6c7086;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+#gc-panel .gc-tab:hover {
+  color: #a6adc8;
+}
+#gc-panel .gc-tab.gc-tab-active {
+  color: #89b4fa;
+  border-bottom-color: #89b4fa;
+}
+
+/* ── Content panels ─────────────────────────── */
+#gc-panel .gc-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+}
+#gc-panel .gc-content.gc-content-active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Site management ────────────────────────── */
+#gc-panel .gc-site-list {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+#gc-panel .gc-site-list::-webkit-scrollbar {
+  width: 6px;
+}
+#gc-panel .gc-site-list::-webkit-scrollbar-thumb {
+  background: #45475a;
+  border-radius: 3px;
+}
+
+#gc-panel .gc-site-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  background: rgba(49, 50, 68, 0.3);
+  gap: 8px;
+}
+
+#gc-panel .gc-site-item .gc-site-domain {
+  flex: 1;
+  font-size: 12px;
+  color: #cdd6f4;
+  font-family: monospace;
+}
+
+#gc-panel .gc-site-item .gc-site-current {
+  font-size: 10px;
+  color: #a6e3a1;
+  background: rgba(166, 227, 161, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+#gc-panel .gc-site-item .gc-btn-remove-site {
+  padding: 3px 10px;
+  border: 1px solid #f38ba8;
+  border-radius: 5px;
+  background: transparent;
+  color: #f38ba8;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#gc-panel .gc-site-item .gc-btn-remove-site:hover {
+  background: #f38ba8;
+  color: #1e1e2e;
+}
+
+#gc-panel .gc-add-site-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px 12px 14px;
+  border-top: 1px solid #313244;
+}
+
+#gc-panel .gc-add-site-row input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  background: #313244;
+  color: #cdd6f4;
+  font-size: 12px;
+  outline: none;
+  font-family: monospace;
+}
+#gc-panel .gc-add-site-row input::placeholder {
+  color: #6c7086;
+}
+#gc-panel .gc-add-site-row input:focus {
+  border-color: #89b4fa;
+}
+
+#gc-panel .gc-add-site-row .gc-btn-add-site {
+  padding: 6px 14px;
+  border: 1px solid #a6e3a1;
+  border-radius: 6px;
+  background: transparent;
+  color: #a6e3a1;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+#gc-panel .gc-add-site-row .gc-btn-add-site:hover {
+  background: #a6e3a1;
+  color: #1e1e2e;
+}
+
+#gc-panel .gc-site-hint {
+  font-size: 11px;
+  color: #6c7086;
+  padding: 0 14px 8px 14px;
+  line-height: 1.6;
+}
+
 /* ── Table ──────────────────────────────────── */
 #gc-panel .gc-table-wrap {
   flex: 1;
@@ -288,17 +429,20 @@ export const PANEL_CSS = /* css */ `
   background: #1e1e2e;
   color: #cdd6f4;
   font-size: 22px;
-  cursor: pointer;
+  cursor: grab;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid #45475a;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: box-shadow 0.15s;
+  user-select: none;
 }
 #gc-mini-btn:hover {
-  transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+#gc-mini-btn:active {
+  cursor: grabbing;
 }
 
 /* ── Toast ──────────────────────────────────── */

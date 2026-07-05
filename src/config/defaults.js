@@ -1,6 +1,10 @@
 /**
  * defaults.js — 按键查找表、手柄标签、默认站点映射
+ *
+ * 预设配置见 src/config/presets/
  */
+
+import { getRecommendedPresetId, getPreset } from './presets/index.js';
 
 // ── 键盘按键 → keyCode/code 查找表 ────────────────────────
 // key 值是 KeyboardEvent.key 的标准值
@@ -189,85 +193,41 @@ export function getKeyDisplayName(key) {
 }
 
 // ── 默认站点映射 ─────────────────────────────────────────
+// 预设定义见 src/config/presets/
 
 /**
- * Komga 漫画阅读器默认映射
+ * Komga 漫画阅读器默认映射（通用版）
  * @returns {Array<{ type: string, index: number, direction?: string, key: string }>}
  */
 export function getKomgaDefaults() {
-  return [
-    // 功能键
-    { type: 'button', index: 0, key: 'ArrowRight' },  // A → 下一页
-    { type: 'button', index: 1, key: 'ArrowLeft' },   // B → 上一页
-    { type: 'button', index: 2, key: 'ArrowDown' },   // X → 向下
-    { type: 'button', index: 3, key: 'ArrowUp' },     // Y → 向上
-
-    // 肩键
-    { type: 'button', index: 4, key: '' },  // LB
-    { type: 'button', index: 5, key: '' },  // RB
-    { type: 'button', index: 6, key: '' },  // LT
-    { type: 'button', index: 7, key: ' ' }, // RT → 空格(翻页)
-
-    // 菜单键
-    { type: 'button', index: 8, key: 'Escape' },  // Back → 退出
-    { type: 'button', index: 9, key: 'f' },       // Start → 全屏
-
-    // 十字键
-    { type: 'button', index: 12, key: 'ArrowUp' },
-    { type: 'button', index: 13, key: 'ArrowDown' },
-    { type: 'button', index: 14, key: 'ArrowLeft' },
-    { type: 'button', index: 15, key: 'ArrowRight' },
-
-    // 左摇杆
-    { type: 'axis', index: 0, direction: 'negative', key: 'ArrowLeft' },
-    { type: 'axis', index: 0, direction: 'positive', key: 'ArrowRight' },
-    { type: 'axis', index: 1, direction: 'negative', key: 'ArrowUp' },
-    { type: 'axis', index: 1, direction: 'positive', key: 'ArrowDown' },
-  ];
+  return getKomgaReadingDefaults();
 }
 
 /**
- * YouTube 默认映射
+ * Komga 纵向阅读模式预设
+ * @returns {Array<{ type: string, index: number, direction?: string, key: string }>}
+ */
+export function getKomgaReadingDefaults() {
+  const preset = getPreset('komga-reading');
+  return preset ? JSON.parse(JSON.stringify(preset.mapping)) : [];
+}
+
+/**
+ * YouTube 预设
  * @returns {Array<{ type: string, index: number, direction?: string, key: string }>}
  */
 export function getYoutubeDefaults() {
-  return [
-    { type: 'button', index: 0, key: 'k' },       // A → 播放/暂停
-    { type: 'button', index: 1, key: 'f' },       // B → 全屏
-    { type: 'button', index: 2, key: 'm' },       // X → 静音
-    { type: 'button', index: 3, key: 'c' },       // Y → 字幕
-
-    { type: 'button', index: 4, key: 'j' },       // LB → 后退10秒
-    { type: 'button', index: 5, key: 'l' },       // RB → 前进10秒
-    { type: 'button', index: 6, key: 'ArrowLeft' },  // LT → 后退5秒
-    { type: 'button', index: 7, key: 'ArrowRight' }, // RT → 前进5秒
-
-    { type: 'button', index: 8, key: 'Escape' },  // Back → 退出全屏
-    { type: 'button', index: 9, key: 'f' },       // Start → 全屏
-
-    // 十字键 → 音量/进度
-    { type: 'button', index: 12, key: 'ArrowUp' },    // 音量+
-    { type: 'button', index: 13, key: 'ArrowDown' },  // 音量-
-    { type: 'button', index: 14, key: 'ArrowLeft' },  // 后退
-    { type: 'button', index: 15, key: 'ArrowRight' }, // 前进
-
-    // 左摇杆
-    { type: 'axis', index: 0, direction: 'negative', key: 'ArrowLeft' },
-    { type: 'axis', index: 0, direction: 'positive', key: 'ArrowRight' },
-    { type: 'axis', index: 1, direction: 'negative', key: 'ArrowUp' },
-    { type: 'axis', index: 1, direction: 'positive', key: 'ArrowDown' },
-  ];
+  const preset = getPreset('youtube');
+  return preset ? JSON.parse(JSON.stringify(preset.mapping)) : [];
 }
 
 /**
- * 根据站点返回默认映射，未知站点返回通用映射
+ * 根据站点返回推荐预设映射
  * @param {string} hostname
  * @returns {Array<{ type: string, index: number, direction?: string, key: string }>}
  */
 export function getSiteDefaults(hostname) {
-  if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
-    return getYoutubeDefaults();
-  }
-  // Komga 及其他站点默认使用 Komga 映射
-  return getKomgaDefaults();
+  const id = getRecommendedPresetId(hostname);
+  const preset = getPreset(id);
+  return preset ? JSON.parse(JSON.stringify(preset.mapping)) : [];
 }

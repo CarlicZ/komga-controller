@@ -19,10 +19,6 @@ export class GamepadReader {
     this._prevButtons = [];
     this._prevAxes = [];
 
-    // 防抖
-    this._connectTimer = null;
-    this._disconnectTimer = null;
-
     this._onConnect = null;
     this._onDisconnect = null;
 
@@ -43,36 +39,23 @@ export class GamepadReader {
 
   _setupEvents() {
     window.addEventListener('gamepadconnected', (e) => {
-      if (this._disconnectTimer) {
-        clearTimeout(this._disconnectTimer);
-        this._disconnectTimer = null;
-      }
-      // 500ms 防抖
-      this._connectTimer = setTimeout(() => {
-        this._connectTimer = null;
-        this._gamepad = e.gamepad;
-        this._index = e.gamepad.index;
-        this._connected = true;
-        this._prevButtons = [];
-        this._prevAxes = [];
-        if (this._onConnect) this._onConnect(e.gamepad);
-      }, 500);
+      console.log('[gc] gamepadconnected event:', e.gamepad.id, 'index:', e.gamepad.index);
+      this._gamepad = e.gamepad;
+      this._index = e.gamepad.index;
+      this._connected = true;
+      this._prevButtons = new Array(e.gamepad.buttons.length).fill(false);
+      this._prevAxes = new Array(e.gamepad.axes.length).fill(0);
+      if (this._onConnect) this._onConnect(e.gamepad);
     });
 
     window.addEventListener('gamepaddisconnected', (e) => {
-      if (this._connectTimer) {
-        clearTimeout(this._connectTimer);
-        this._connectTimer = null;
-      }
       if (e.gamepad.index !== this._index) return;
-      this._disconnectTimer = setTimeout(() => {
-        this._disconnectTimer = null;
-        this._connected = false;
-        this._gamepad = null;
-        this._prevButtons = [];
-        this._prevAxes = [];
-        if (this._onDisconnect) this._onDisconnect();
-      }, 500);
+      console.log('[gc] gamepaddisconnected event, index:', e.gamepad.index);
+      this._connected = false;
+      this._gamepad = null;
+      this._prevButtons = [];
+      this._prevAxes = [];
+      if (this._onDisconnect) this._onDisconnect();
     });
   }
 
@@ -106,10 +89,13 @@ export class GamepadReader {
     if (!this._connected) {
       this._connected = true;
       this._gamepad = gp;
-      this._prevButtons = [...gp.buttons.map(b => b.pressed)];
-      this._prevAxes = [...gp.axes];
+      // 初始化为全部未按下/归零 —— 保证已按下的按键在下一帧被检测为"变化"
+      // 如果用当前状态初始化，已按下的按键就会被"吞掉"（只发 keyup 不发 keydown）
+      this._prevButtons = new Array(gp.buttons.length).fill(false);
+      this._prevAxes = new Array(gp.axes.length).fill(0);
       if (this._onConnect) this._onConnect(gp);
-      return null; // 不触发事件，等下一帧
+      console.log(`[gc] Gamepad detected in poll: ${gp.id} (${gp.buttons.length} buttons, ${gp.axes.length} axes)`);
+      return null; // 下一帧开始处理按钮变化
     }
 
     this._gamepad = gp;

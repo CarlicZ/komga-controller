@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gamepad Controller - 游戏手柄键盘映射
 // @namespace    https://github.com/carlicz/komga-controller
-// @version      1.0.0
+// @version      1.1.0
 // @description  使用游戏手柄控制网页，支持自定义按键映射、多站点独立配置
 // @author       carlicz
 // @match        *://*/*
